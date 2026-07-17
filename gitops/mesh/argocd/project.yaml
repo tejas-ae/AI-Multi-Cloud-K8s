@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: mesh-security
+  namespace: argocd
+spec:
+  description: Restricted delivery boundary for platform mesh security policy.
+  sourceRepos:
+    - https://github.com/tejas-ae/AI-Multi-Cloud-K8s.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: platform
+  namespaceResourceWhitelist:
+    - group: security.istio.io
+      kind: PeerAuthentication

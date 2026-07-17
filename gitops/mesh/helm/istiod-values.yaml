@@ -1,0 +1,34 @@
+autoscaleEnabled: true
+autoscaleMin: 2
+autoscaleMax: 2
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: istiod
+        topologyKey: kubernetes.io/hostname
+
+global:
+  proxy:
+    holdApplicationUntilProxyStarts: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+
+meshConfig:
+  accessLogFile: /dev/stdout
+  enablePrometheusMerge: true

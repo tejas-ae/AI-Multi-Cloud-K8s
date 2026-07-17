@@ -5,6 +5,7 @@ on:
     paths:
       - "gitops/**"
       - "scripts/argocd.sh"
+      - "scripts/istio.sh"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - "gitops/**"
       - "scripts/argocd.sh"
+      - "scripts/istio.sh"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
 
@@ -31,14 +33,33 @@ jobs:
         with:
           version: v1.35.0
 
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
       - name: Render bootstrap manifests
         run: |
           kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
+          kubectl kustomize gitops/mesh/bootstrap >/dev/null
+          kubectl kustomize gitops/mesh/policy >/dev/null
+
+      - name: Render Istio chart values
+        run: |
+          helm repo add istio https://istio-release.storage.googleapis.com/charts
+          helm template istiod istio/istiod \
+            --version 1.30.3 \
+            --namespace istio-system \
+            --values gitops/mesh/helm/istiod-values.yaml >/dev/null
+          helm template istio-ingress istio/gateway \
+            --version 1.30.3 \
+            --namespace istio-ingress \
+            --values gitops/mesh/helm/gateway-values.yaml >/dev/null
 
       - name: Check the bootstrap script
         run: |
           bash -n scripts/argocd.sh
+          bash -n scripts/istio.sh
           shellcheck scripts/argocd.sh
+          shellcheck scripts/istio.sh
 
       - name: Check repository publication
         run: ./scripts/verify-repository.sh
