@@ -33,7 +33,6 @@ jobs:
 
       - name: Render bootstrap manifests
         run: |
-          kubectl kustomize gitops/bootstrap/cluster-access >/dev/null
           kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
 
       - name: Check the bootstrap script

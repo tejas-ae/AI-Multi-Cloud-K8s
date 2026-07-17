@@ -1,4 +1,5 @@
 fullnameOverride: argocd
+createClusterRoles: false
 
 configs:
   cm:

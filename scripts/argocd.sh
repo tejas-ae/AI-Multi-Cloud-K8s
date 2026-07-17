@@ -43,7 +43,7 @@ check_cluster_access() {
 
   kubectl --context "$context" get --raw=/readyz >/dev/null
   if [[ "$(kubectl --context "$context" auth can-i create namespaces)" != "yes" ]]; then
-    echo "$alias context cannot create namespaces; cluster-admin access is required for the bootstrap" >&2
+    echo "$alias context cannot provision namespaces; the bootstrap needs operator access for the chart CRDs and namespace" >&2
     exit 1
   fi
 }
@@ -68,21 +68,6 @@ install_argocd() {
     wait --for=condition=Available deployment --all --timeout=10m
 }
 
-register_cluster() {
-  local context="$1"
-  local alias="$2"
-
-  kubectl --context "$context" apply -k "$ROOT_DIR/gitops/bootstrap/cluster-access"
-
-  argocd --core --kube-context "$context" cluster add "$context" \
-    --name "$alias" \
-    --in-cluster \
-    --service-account argocd-manager \
-    --system-namespace kube-system \
-    --upsert \
-    --yes
-}
-
 apply_bootstrap_config() {
   local context="$1"
 
@@ -103,9 +88,6 @@ bootstrap() {
   install_argocd "$GKE_CONTEXT"
   install_argocd "$AKS_CONTEXT"
 
-  register_cluster "$GKE_CONTEXT" gke
-  register_cluster "$AKS_CONTEXT" aks
-
   apply_bootstrap_config "$GKE_CONTEXT"
   apply_bootstrap_config "$AKS_CONTEXT"
 
@@ -122,8 +104,7 @@ status() {
     alias="${entry%%:*}"
     context="${entry#*:}"
     echo "=== ${alias} ==="
-    kubectl --context "$context" --namespace "$ARGOCD_NAMESPACE" get pods
-    argocd --core --kube-context "$context" cluster list
+    kubectl --context "$context" --namespace "$ARGOCD_NAMESPACE" get pods,applications,appprojects
     argocd --core --kube-context "$context" app get platform-bootstrap
   done
 }
