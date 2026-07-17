@@ -1,0 +1,11 @@
+variable "subscription_id" { type = string }
+variable "location" { type = string }
+variable "resource_group_name" { type = string }
+variable "cluster_name" { type = string }
+variable "node_vm_size" { type = string }
+variable "kubernetes_version" { type = string }
+variable "min_nodes" { type = number }
+variable "max_nodes" { type = number }
+variable "admin_cidr" { type = string }
+variable "dns_suffix" { type = string }
+variable "tags" { type = map(string) }

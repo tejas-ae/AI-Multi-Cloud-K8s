@@ -1,0 +1,53 @@
+name: terraform-ci
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - "scripts/**"
+      - "Makefile"
+      - ".github/workflows/terraform-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - "scripts/**"
+      - "Makefile"
+      - ".github/workflows/terraform-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive terraform
+
+      - name: Initialize providers
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: Validate configuration
+        run: terraform -chdir=terraform validate
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check shell scripts
+        run: shellcheck scripts/*.sh
+
+      - name: Check repository publication and script modes
+        run: ./scripts/verify-repository.sh

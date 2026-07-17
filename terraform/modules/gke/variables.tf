@@ -1,0 +1,10 @@
+variable "project_id" { type = string }
+variable "region" { type = string }
+variable "zone" { type = string }
+variable "cluster_name" { type = string }
+variable "node_machine_type" { type = string }
+variable "kubernetes_version" { type = string }
+variable "min_nodes" { type = number }
+variable "max_nodes" { type = number }
+variable "admin_cidr" { type = string }
+variable "labels" { type = map(string) }
