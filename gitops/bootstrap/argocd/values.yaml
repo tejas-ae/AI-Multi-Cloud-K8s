@@ -6,6 +6,7 @@ configs:
     create: true
     application.resourceTrackingMethod: annotation
     exec.enabled: false
+    resource.respectRBAC: normal
     statusbadge.enabled: false
   rbac:
     policy.default: role:readonly
@@ -14,9 +15,6 @@ dex:
   enabled: false
 
 notifications:
-  enabled: false
-
-applicationSet:
   enabled: false
 
 server:

@@ -72,12 +72,28 @@ install_argocd() {
     wait --for=condition=Available deployment --all --timeout=10m
 }
 
+run_argocd_core() (
+  local context="$1"
+  shift
+
+  local temporary_kubeconfig
+  umask 077
+  temporary_kubeconfig="$(mktemp)"
+  trap 'rm -f "$temporary_kubeconfig"' EXIT
+
+  kubectl config view --raw --minify --context "$context" >"$temporary_kubeconfig"
+  kubectl --kubeconfig "$temporary_kubeconfig" \
+    config set-context --current --namespace "$ARGOCD_NAMESPACE" >/dev/null
+
+  KUBECONFIG="$temporary_kubeconfig" argocd --core "$@"
+)
+
 apply_bootstrap_config() {
   local context="$1"
 
   kubectl --context "$context" apply -f "$ROOT_DIR/gitops/bootstrap/argocd/application.yaml"
-  argocd --core --kube-context "$context" app sync platform-bootstrap --timeout 300
-  argocd --core --kube-context "$context" app wait platform-bootstrap --sync --health --timeout 300
+  run_argocd_core "$context" app sync platform-bootstrap --timeout 300
+  run_argocd_core "$context" app wait platform-bootstrap --sync --health --timeout 300
 }
 
 bootstrap() {
@@ -109,7 +125,7 @@ status() {
     context="${entry#*:}"
     echo "=== ${alias} ==="
     kubectl --context "$context" --namespace "$ARGOCD_NAMESPACE" get pods,applications,appprojects
-    argocd --core --kube-context "$context" app get platform-bootstrap
+    run_argocd_core "$context" app get platform-bootstrap
   done
 }
 
