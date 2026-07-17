@@ -16,7 +16,7 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 
 - Terraform owns cloud infrastructure.
 - GitHub Actions handles CI and immutable image publication.
-- Argo CD will own cluster delivery from Git.
+- Argo CD is installed in each cluster and owns local delivery from Git.
 - Istio will provide service identity, mTLS, failure injection, and traffic shifting.
 - Prometheus, OpenTelemetry, Tempo, and Grafana will provide incident evidence.
 - Claude will return schema-validated diagnoses tied to supplied evidence IDs.
@@ -43,4 +43,4 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The next milestone is provisioning the foundation, verifying both cluster identity paths, and bootstrapping GitOps.
+The cloud foundation is live. I am using Argo CD as the pull-based delivery layer before adding the mesh, services, and observability stack.

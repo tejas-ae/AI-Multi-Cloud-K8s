@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ai-multicloud-k8s
+  namespace: argocd
+spec:
+  description: Shared delivery controls for the AI Multi-Cloud K8s services.
+  sourceRepos:
+    - https://github.com/tejas-ae/AI-Multi-Cloud-K8s.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  namespaceResourceWhitelist:
+    - group: argoproj.io
+      kind: AppProject

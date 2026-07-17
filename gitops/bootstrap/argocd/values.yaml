@@ -1,0 +1,22 @@
+fullnameOverride: argocd
+
+configs:
+  cm:
+    application.resourceTrackingMethod: annotation
+    exec.enabled: false
+    statusbadge.enabled: false
+  rbac:
+    policy.default: role:readonly
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+applicationSet:
+  enabled: false
+
+server:
+  service:
+    type: ClusterIP

@@ -1,0 +1,45 @@
+name: gitops-ci
+
+on:
+  pull_request:
+    paths:
+      - "gitops/**"
+      - "scripts/argocd.sh"
+      - "Makefile"
+      - ".github/workflows/gitops-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "gitops/**"
+      - "scripts/argocd.sh"
+      - "Makefile"
+      - ".github/workflows/gitops-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.35.0
+
+      - name: Render bootstrap manifests
+        run: |
+          kubectl kustomize gitops/bootstrap/cluster-access >/dev/null
+          kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
+
+      - name: Check the bootstrap script
+        run: |
+          bash -n scripts/argocd.sh
+          shellcheck scripts/argocd.sh
+
+      - name: Check repository publication
+        run: ./scripts/verify-repository.sh
