@@ -40,11 +40,14 @@ jobs:
 
       - name: Render bootstrap manifests
         run: |
+          workload_manifest="$(mktemp)"
+          trap 'rm -f "$workload_manifest"' EXIT
           kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
           kubectl kustomize gitops/mesh/bootstrap >/dev/null
           kubectl kustomize gitops/mesh/policy >/dev/null
           kubectl kustomize gitops/workloads/bootstrap >/dev/null
-          kubectl kustomize gitops/workloads/platform-api >/dev/null
+          kubectl kustomize gitops/workloads/platform-api >"$workload_manifest"
+          grep -q -- '--udp-port=8081' "$workload_manifest"
 
       - name: Render Istio chart values
         run: |

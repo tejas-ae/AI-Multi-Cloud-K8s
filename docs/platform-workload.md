@@ -12,7 +12,7 @@ The Deployment runs Kubernetes `agnhost` `2.59` in `netexec` mode. That version 
 - `/hostname` for observing which replica answered; and
 - `/` for a simple HTTP response.
 
-UDP is disabled because this workload needs only HTTP. The Pod does not mount a service-account token.
+The `netexec` UDP readiness listener remains enabled because its `/healthz` handler reports success only after that listener is ready. The Kubernetes Service publishes only HTTP, so neither Istio ingress nor Traffic Manager exposes the UDP port. The Pod does not mount a service-account token.
 
 ## Availability
 

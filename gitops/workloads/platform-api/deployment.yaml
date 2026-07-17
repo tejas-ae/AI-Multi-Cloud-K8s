@@ -43,7 +43,7 @@ spec:
           args:
             - netexec
             - --http-port=8080
-            - --udp-port=-1
+            - --udp-port=8081
           ports:
             - name: http
               containerPort: 8080

@@ -106,6 +106,7 @@ install_cluster() {
   local network="network-${alias}"
   local cluster_name="$alias"
   local -a gateway_provider_values
+  local -a istiod_command
 
   kubectl --context "$context" apply \
     -f "$ROOT_DIR/gitops/mesh/bootstrap/namespaces.yaml"
@@ -122,7 +123,7 @@ install_cluster() {
     customresourcedefinition/peerauthentications.security.istio.io \
     --timeout=5m
 
-  helm upgrade --install istiod istio/istiod \
+  istiod_command=(helm upgrade --install istiod istio/istiod \
     --kube-context "$context" \
     --namespace "$ISTIO_SYSTEM_NAMESPACE" \
     --version "$ISTIO_VERSION" \
@@ -130,9 +131,14 @@ install_cluster() {
     --set-string "global.meshID=$mesh_id" \
     --set-string "global.multiCluster.clusterName=$cluster_name" \
     --set-string "global.network=$network" \
-    --set-string "meshConfig.trustDomain=$trust_domain" \
-    --wait \
-    --timeout 10m
+    --set-string "meshConfig.trustDomain=$trust_domain")
+
+  if [[ "$(helm version --template '{{.Version}}')" == v4.* ]]; then
+    istiod_command+=(--server-side=false)
+  fi
+
+  istiod_command+=(--wait --timeout 10m)
+  "${istiod_command[@]}"
 
   case "$alias" in
     gke)
