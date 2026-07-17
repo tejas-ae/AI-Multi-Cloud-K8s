@@ -114,7 +114,11 @@ verify_cluster() {
       (.items | length == 2)
       and all(
         .items[];
-        ([.spec.containers[].name] | index("istio-proxy")) != null
+        any(.spec.containers[]?; .name == "istio-proxy")
+        or any(
+          .spec.initContainers[]?;
+          .name == "istio-proxy" and .restartPolicy == "Always"
+        )
       )
     ' >/dev/null; then
     echo "$alias workload does not have two sidecar-injected Pods" >&2

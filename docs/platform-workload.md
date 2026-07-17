@@ -33,7 +33,7 @@ The application container:
 - uses a read-only root filesystem; and
 - does not receive Kubernetes API credentials.
 
-Istio injects the `istio-proxy` container because the existing `platform` namespace carries the injection label. The namespace's default `PeerAuthentication` requires `STRICT` mTLS for workload traffic.
+Istio injects `istio-proxy` because the existing `platform` namespace carries the injection label. Depending on the Kubernetes and Istio capabilities, the proxy appears either as a regular sidecar container or as a restartable native sidecar in the Pod's init-container list. The namespace's default `PeerAuthentication` requires `STRICT` mTLS for workload traffic.
 
 ## Ingress route
 
@@ -79,7 +79,7 @@ The workload bootstrap:
 3. applies the restricted Role, AppProject, and Application in each cluster;
 4. synchronizes the `platform-api` Application through namespace-safe Argo CD core mode;
 5. waits for the Deployment and Argo CD health;
-6. requires exactly two workload Pods with an `istio-proxy` container;
+6. requires exactly two workload Pods with `istio-proxy` injected as either a regular or native sidecar;
 7. confirms the namespace still enforces strict mTLS;
 8. requests `/healthz` through each fixed ingress address; and
 9. requests `/healthz` through Traffic Manager.
