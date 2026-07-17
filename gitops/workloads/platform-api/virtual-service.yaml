@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: platform-api
+  namespace: platform
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - platform-api
+  http:
+    - name: health
+      match:
+        - uri:
+            exact: /healthz
+      route:
+        - destination:
+            host: platform-api.platform.svc.cluster.local
+            port:
+              number: 80
+      timeout: 3s
+    - name: application
+      match:
+        - uri:
+            prefix: /
+      retries:
+        attempts: 2
+        perTryTimeout: 2s
+        retryOn: connect-failure,reset,503
+      route:
+        - destination:
+            host: platform-api.platform.svc.cluster.local
+            port:
+              number: 80
+      timeout: 5s

@@ -23,6 +23,8 @@ The application controller uses its ordinary projected workload token. The chart
 
 The source repository is public, so the controller does not need a GitHub token to read it. I start with manual synchronization and no pruning or self-healing. A later application can opt into automatic sync only after its health and rollback behaviour are tested.
 
+The mesh and workload each add their own namespace Role and AppProject allowlist. The workload controller can manage only its Service, Deployment, PodDisruptionBudget, Gateway, and VirtualService kinds in `platform`. It cannot manage Secrets, RBAC, or cluster-scoped resources.
+
 ## Access
 
 I leave the Argo CD server private and use a local port-forward when I need the UI:

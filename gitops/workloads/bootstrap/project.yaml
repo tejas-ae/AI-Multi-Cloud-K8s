@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-workloads
+  namespace: argocd
+spec:
+  description: Restricted delivery boundary for the public platform workload.
+  sourceRepos:
+    - https://github.com/tejas-ae/AI-Multi-Cloud-K8s.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: platform
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: Service
+    - group: apps
+      kind: Deployment
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: networking.istio.io
+      kind: Gateway
+    - group: networking.istio.io
+      kind: VirtualService

@@ -6,6 +6,7 @@ on:
       - "gitops/**"
       - "scripts/argocd.sh"
       - "scripts/istio.sh"
+      - "scripts/platform.sh"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
   push:
@@ -15,6 +16,7 @@ on:
       - "gitops/**"
       - "scripts/argocd.sh"
       - "scripts/istio.sh"
+      - "scripts/platform.sh"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
 
@@ -41,6 +43,8 @@ jobs:
           kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
           kubectl kustomize gitops/mesh/bootstrap >/dev/null
           kubectl kustomize gitops/mesh/policy >/dev/null
+          kubectl kustomize gitops/workloads/bootstrap >/dev/null
+          kubectl kustomize gitops/workloads/platform-api >/dev/null
 
       - name: Render Istio chart values
         run: |
@@ -58,8 +62,10 @@ jobs:
         run: |
           bash -n scripts/argocd.sh
           bash -n scripts/istio.sh
+          bash -n scripts/platform.sh
           shellcheck scripts/argocd.sh
           shellcheck scripts/istio.sh
+          shellcheck scripts/platform.sh
 
       - name: Check repository publication
         run: ./scripts/verify-repository.sh

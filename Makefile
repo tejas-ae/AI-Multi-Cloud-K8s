@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: bootstrap-macos bootstrap-cloud-foundation preflight k8s-versions verify-clean tf-init tf-fmt tf-validate tf-plan tf-review tf-apply tf-destroy tf-output gitops-bootstrap gitops-status argocd-gke-ui argocd-aks-ui mesh-bootstrap mesh-status
+.PHONY: bootstrap-macos bootstrap-cloud-foundation preflight k8s-versions verify-clean tf-init tf-fmt tf-validate tf-plan tf-review tf-apply tf-destroy tf-output gitops-bootstrap gitops-status argocd-gke-ui argocd-aks-ui mesh-bootstrap mesh-status workload-bootstrap workload-status
 
 bootstrap-macos:
 	./scripts/bootstrap-macos.sh --execute
@@ -58,3 +58,9 @@ mesh-bootstrap:
 
 mesh-status:
 	./scripts/istio.sh status
+
+workload-bootstrap:
+	./scripts/platform.sh bootstrap
+
+workload-status:
+	./scripts/platform.sh status

@@ -98,20 +98,22 @@ The bootstrap uses `helm upgrade --install` and declarative Kubernetes applies. 
 
 I do not change the trust-domain value on a live mesh as a routine rerun. A trust-domain change alters workload identity and must be treated as a migration with compatibility aliases, certificate rotation, and explicit traffic verification.
 
-## Verification before workloads
+## Workload verification
 
-Before deploying an application, I run:
+Before deploying the platform verification workload, I run:
 
 ```bash
 make mesh-status
 ```
 
-I also verify injection on a rendered workload or a disposable Pod before relying on strict mTLS. The later application deployment will add an end-to-end check that proves:
+The workload bootstrap then adds an end-to-end check that proves:
 
 - both Pods contain an `istio-proxy` container;
-- service-to-service traffic succeeds through mTLS;
-- plaintext traffic from outside the mesh is rejected; and
-- each ingress address serves the application health route used by Traffic Manager.
+- the namespace remains under the strict mTLS policy;
+- each ingress address serves the application health route; and
+- Traffic Manager can reach the same health route.
+
+The complete workload boundary and commands are in [Platform verification workload](platform-workload.md).
 
 ## Upgrade boundary
 

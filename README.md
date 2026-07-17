@@ -11,13 +11,16 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - Pinned Kubernetes and Terraform provider versions
 - A sanitized plan reviewer with an exact 24-resource allowlist
 - CI checks for Terraform, shell scripts, secrets, unsafe files, and executable modes
+- Independent Argo CD control planes with restricted in-cluster delivery
+- Separate Istio meshes with strict workload mTLS and redundant ingress
+- A Git-managed verification workload served through both clouds and Traffic Manager
 
 ## Architecture
 
 - Terraform owns cloud infrastructure.
 - GitHub Actions handles CI and immutable image publication.
 - Argo CD is installed in each cluster and owns local delivery from Git.
-- Istio will provide service identity, mTLS, failure injection, and traffic shifting.
+- Istio provides local service identity and strict mTLS; failure injection and traffic shifting come with the reliability tests.
 - Prometheus, OpenTelemetry, Tempo, and Grafana will provide incident evidence.
 - Claude will return schema-validated diagnoses tied to supplied evidence IDs.
 - OPA and human approval will gate remediation.
@@ -43,4 +46,4 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The cloud foundation is live. I am using Argo CD as the pull-based delivery layer before adding the mesh, services, and observability stack.
+The cloud foundation, Argo CD installations, and independent Istio meshes are live in both clusters. The platform verification workload closes the ingress and Traffic Manager health path before I add application telemetry, SLOs, failure injection, and automated remediation.
