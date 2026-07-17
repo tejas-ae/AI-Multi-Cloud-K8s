@@ -1,5 +1,31 @@
 alertmanager:
-  enabled: false
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by:
+        - alertname
+        - cluster
+        - service
+        - severity
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: slo-null
+    receivers:
+      - name: slo-null
+  alertmanagerSpec:
+    replicas: 1
+    retention: 6h
+    automountServiceAccountToken: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 96Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
 
 defaultRules:
   create: false
@@ -67,6 +93,13 @@ prometheus:
       matchLabels:
         telemetry.ai-multicloud-k8s/enabled: "true"
     podMonitorNamespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: platform
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector:
+      matchLabels:
+        telemetry.ai-multicloud-k8s/enabled: "true"
+    ruleNamespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: platform
     resources:

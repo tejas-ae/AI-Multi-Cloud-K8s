@@ -43,17 +43,22 @@ jobs:
       - name: Render bootstrap manifests
         run: |
           workload_manifest="$(mktemp)"
-          trap 'rm -f "$workload_manifest"' EXIT
+          observability_policy_manifest="$(mktemp)"
+          trap 'rm -f "$workload_manifest" "$observability_policy_manifest"' EXIT
           kubectl kustomize gitops/bootstrap/argocd/config >/dev/null
           kubectl kustomize gitops/mesh/bootstrap >/dev/null
           kubectl kustomize gitops/mesh/policy >/dev/null
           kubectl kustomize gitops/workloads/bootstrap >/dev/null
           kubectl kustomize gitops/workloads/platform-api >"$workload_manifest"
           kubectl kustomize gitops/observability/bootstrap >/dev/null
-          kubectl kustomize gitops/observability/policy >/dev/null
+          kubectl kustomize gitops/observability/policy >"$observability_policy_manifest"
           grep -q -- '--udp-port=8081' "$workload_manifest"
           grep -q -- 'maxSurge: 0' "$workload_manifest"
           grep -q -- 'maxUnavailable: 1' "$workload_manifest"
+          grep -q 'kind: PrometheusRule' "$observability_policy_manifest"
+          grep -q 'PlatformApiAvailabilityBudgetFastBurn' "$observability_policy_manifest"
+          grep -q 'PlatformApiAvailabilityBudgetSlowBurn' "$observability_policy_manifest"
+          grep -q 'PlatformApiLatencyObjectiveAtRisk' "$observability_policy_manifest"
 
       - name: Render Istio chart values
         run: |
@@ -85,6 +90,11 @@ jobs:
             --namespace observability \
             --values gitops/observability/helm/kube-prometheus-stack-values.yaml \
             --set-string prometheus.prometheusSpec.externalLabels.cluster=ci >"$prometheus_manifest"
+          alertmanager_config="$(
+            awk '$1 == "alertmanager.yaml:" {print $2; exit}' "$prometheus_manifest" |
+              tr -d '"' |
+              base64 --decode
+          )"
           helm template otel-collector open-telemetry/opentelemetry-collector \
             --version 0.165.0 \
             --namespace observability \
@@ -94,6 +104,9 @@ jobs:
             --namespace observability \
             --values gitops/observability/helm/tempo-values.yaml >"$tempo_manifest"
           grep -q 'cluster: ci' "$prometheus_manifest"
+          grep -q 'kind: Alertmanager' "$prometheus_manifest"
+          grep -q 'retention: 6h' "$prometheus_manifest"
+          grep -q 'receiver: slo-null' <<<"$alertmanager_config"
           grep -q 'tempo.observability.svc.cluster.local:4317' "$collector_manifest"
           grep -q 'reporting_enabled: false' "$tempo_manifest"
 

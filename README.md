@@ -16,6 +16,7 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - A Git-managed verification workload served through both clouds and Traffic Manager
 - Per-cluster Prometheus, OpenTelemetry Collector, Tempo, and Grafana foundations
 - Git-managed Istio metrics discovery and distributed-tracing policy
+- Git-managed service objectives, burn-rate recording rules, and internal Alertmanager routing
 
 ## Architecture
 
@@ -23,7 +24,7 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - GitHub Actions handles CI and immutable image publication.
 - Argo CD is installed in each cluster and owns local delivery from Git.
 - Istio provides local service identity and strict mTLS; failure injection and traffic shifting come with the reliability tests.
-- Prometheus, OpenTelemetry, Tempo, and Grafana provide local metrics and traces without cross-cloud telemetry credentials.
+- Prometheus, Alertmanager, OpenTelemetry, Tempo, and Grafana provide local metrics, alerts, and traces without cross-cloud telemetry credentials.
 - Claude will return schema-validated diagnoses tied to supplied evidence IDs.
 - OPA and human approval will gate remediation.
 - Every traffic change will be verified and rolled back when SLOs get worse.
@@ -48,4 +49,4 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics discovery and Istio tracing now close the first evidence path before I add SLOs, failure injection, and automated remediation.
+The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics discovery, Istio tracing, short-window SLO evaluation, and internal alert routing now close the first evidence path before I add controlled failure injection and automated remediation.

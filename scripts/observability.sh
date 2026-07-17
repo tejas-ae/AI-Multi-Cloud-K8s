@@ -8,6 +8,7 @@ KUBE_PROMETHEUS_STACK_VERSION="${KUBE_PROMETHEUS_STACK_VERSION:-87.17.0}"
 OTEL_COLLECTOR_VERSION="${OTEL_COLLECTOR_VERSION:-0.165.0}"
 TEMPO_VERSION="${TEMPO_VERSION:-2.2.3}"
 PROMETHEUS_LOCAL_PORT="${PROMETHEUS_LOCAL_PORT:-19090}"
+ALERTMANAGER_LOCAL_PORT="${ALERTMANAGER_LOCAL_PORT:-19093}"
 TEMPO_LOCAL_PORT="${TEMPO_LOCAL_PORT:-13200}"
 GRAFANA_LOCAL_PORT="${GRAFANA_LOCAL_PORT:-3000}"
 GKE_CONTEXT="${GKE_CONTEXT:-}"
@@ -201,6 +202,71 @@ verify_prometheus_data() {
   return 1
 }
 
+verify_slo_rules() {
+  local context="$1"
+  local alias="$2"
+  local attempt
+  local response
+
+  start_port_forward "$context" \
+    service/observability-kube-prometh-prometheus \
+    "${PROMETHEUS_LOCAL_PORT}:9090" \
+    "http://127.0.0.1:${PROMETHEUS_LOCAL_PORT}/-/ready"
+
+  for ((attempt = 1; attempt <= 36; attempt++)); do
+    response="$(curl --fail --silent --show-error \
+      --connect-timeout 2 --max-time 10 \
+      "http://127.0.0.1:${PROMETHEUS_LOCAL_PORT}/api/v1/rules" || true)"
+    if jq -e '
+      .status == "success"
+      and any(
+        .data.groups[];
+        .name == "platform-api.slo-recording"
+        and all(.rules[]; .health == "ok")
+      )
+      and any(
+        .data.groups[];
+        .name == "platform-api.slo-alerting"
+        and all(.rules[]; .health == "ok")
+      )
+    ' <<<"$response" >/dev/null 2>&1; then
+      stop_port_forward
+      echo "$alias Prometheus loaded healthy platform-api SLO rules."
+      return 0
+    fi
+    sleep 5
+  done
+
+  stop_port_forward
+  echo "$alias Prometheus did not load healthy platform-api SLO rules" >&2
+  return 1
+}
+
+verify_alertmanager() {
+  local context="$1"
+  local alias="$2"
+  local response
+
+  start_port_forward "$context" \
+    service/observability-kube-prometh-alertmanager \
+    "${ALERTMANAGER_LOCAL_PORT}:9093" \
+    "http://127.0.0.1:${ALERTMANAGER_LOCAL_PORT}/-/ready"
+
+  response="$(curl --fail --silent --show-error \
+    --connect-timeout 2 --max-time 10 \
+    "http://127.0.0.1:${ALERTMANAGER_LOCAL_PORT}/api/v2/status")"
+  stop_port_forward
+
+  if ! jq -e '
+    .config.original | contains("receiver: slo-null")
+  ' <<<"$response" >/dev/null 2>&1; then
+    echo "$alias Alertmanager did not load the reviewed internal route" >&2
+    return 1
+  fi
+
+  echo "$alias Alertmanager loaded the internal SLO route."
+}
+
 verify_tempo_data() {
   local context="$1"
   local alias="$2"
@@ -252,6 +318,28 @@ verify_policy() {
     echo "$alias platform-api PodMonitor does not match the reviewed selector" >&2
     return 1
   fi
+
+  if ! kubectl --context "$context" --namespace "$PLATFORM_NAMESPACE" \
+    get prometheusrule platform-api-slos --output json |
+    jq -e '
+      .metadata.labels["telemetry.ai-multicloud-k8s/enabled"] == "true"
+      and any(.spec.groups[]; .name == "platform-api.slo-recording")
+      and any(
+        .spec.groups[].rules[];
+        .alert == "PlatformApiAvailabilityBudgetFastBurn"
+      )
+      and any(
+        .spec.groups[].rules[];
+        .alert == "PlatformApiAvailabilityBudgetSlowBurn"
+      )
+      and any(
+        .spec.groups[].rules[];
+        .alert == "PlatformApiLatencyObjectiveAtRisk"
+      )
+    ' >/dev/null; then
+    echo "$alias platform-api PrometheusRule does not match the reviewed SLO policy" >&2
+    return 1
+  fi
 }
 
 verify_runtime() {
@@ -270,6 +358,8 @@ verify_runtime() {
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     rollout status statefulset/prometheus-observability-kube-prometh-prometheus --timeout=10m
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
+    rollout status statefulset/alertmanager-observability-kube-prometh-alertmanager --timeout=10m
+  kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     rollout status statefulset/tempo --timeout=10m
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     rollout status deployment/otel-collector --timeout=10m
@@ -277,6 +367,8 @@ verify_runtime() {
   verify_policy "$context" "$alias"
   generate_trace_traffic "$ingress_ip" "$alias"
   verify_prometheus_data "$context" "$alias"
+  verify_slo_rules "$context" "$alias"
+  verify_alertmanager "$context" "$alias"
   verify_tempo_data "$context" "$alias"
 }
 
@@ -360,7 +452,7 @@ cluster_status() {
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     get deployment,statefulset,daemonset,pods,service
   kubectl --context "$context" --namespace "$PLATFORM_NAMESPACE" \
-    get telemetry,podmonitor
+    get telemetry,podmonitor,prometheusrule
   run_argocd_core "$context" app get observability-policy
   verify_runtime "$context" "$alias" "$ingress_ip"
 }

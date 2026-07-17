@@ -13,5 +13,7 @@ spec:
   namespaceResourceWhitelist:
     - group: monitoring.coreos.com
       kind: PodMonitor
+    - group: monitoring.coreos.com
+      kind: PrometheusRule
     - group: telemetry.istio.io
       kind: Telemetry

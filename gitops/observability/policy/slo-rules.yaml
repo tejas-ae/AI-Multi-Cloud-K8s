@@ -1,0 +1,110 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform-api-slos
+  namespace: platform
+  labels:
+    telemetry.ai-multicloud-k8s/enabled: "true"
+spec:
+  groups:
+    - name: platform-api.slo-recording
+      interval: 30s
+      rules:
+        - record: platform_api:http_requests:rate5m
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api"}[5m]))
+        - record: platform_api:http_errors:rate5m
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api",response_code=~"5.."}[5m]))
+        - record: platform_api:http_error_ratio:rate5m
+          expr: |
+            platform_api:http_errors:rate5m / clamp_min(platform_api:http_requests:rate5m, 0.001)
+        - record: platform_api:availability_burn_rate:5m
+          expr: |
+            platform_api:http_error_ratio:rate5m / 0.001
+        - record: platform_api:http_requests:rate30m
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api"}[30m]))
+        - record: platform_api:http_errors:rate30m
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api",response_code=~"5.."}[30m]))
+        - record: platform_api:http_error_ratio:rate30m
+          expr: |
+            platform_api:http_errors:rate30m / clamp_min(platform_api:http_requests:rate30m, 0.001)
+        - record: platform_api:availability_burn_rate:30m
+          expr: |
+            platform_api:http_error_ratio:rate30m / 0.001
+        - record: platform_api:http_requests:rate1h
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api"}[1h]))
+        - record: platform_api:http_errors:rate1h
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api",response_code=~"5.."}[1h]))
+        - record: platform_api:http_error_ratio:rate1h
+          expr: |
+            platform_api:http_errors:rate1h / clamp_min(platform_api:http_requests:rate1h, 0.001)
+        - record: platform_api:availability_burn_rate:1h
+          expr: |
+            platform_api:http_error_ratio:rate1h / 0.001
+        - record: platform_api:http_requests:rate6h
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api"}[6h]))
+        - record: platform_api:http_errors:rate6h
+          expr: |
+            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api",response_code=~"5.."}[6h]))
+        - record: platform_api:http_error_ratio:rate6h
+          expr: |
+            platform_api:http_errors:rate6h / clamp_min(platform_api:http_requests:rate6h, 0.001)
+        - record: platform_api:availability_burn_rate:6h
+          expr: |
+            platform_api:http_error_ratio:rate6h / 0.001
+        - record: platform_api:http_request_duration_milliseconds:p95_5m
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_service_name="platform-api"}[5m])))
+        - record: platform_api:http_request_duration_milliseconds:p95_30m
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_service_name="platform-api"}[30m])))
+    - name: platform-api.slo-alerting
+      interval: 30s
+      rules:
+        - alert: PlatformApiAvailabilityBudgetFastBurn
+          expr: |
+            (platform_api:availability_burn_rate:1h > 14.4)
+              and
+            (platform_api:availability_burn_rate:5m > 14.4)
+          for: 2m
+          labels:
+            severity: critical
+            service: platform-api
+            slo: availability
+          annotations:
+            summary: Platform API is consuming its availability budget rapidly
+            description: The 1-hour and 5-minute error-budget burn rates both exceed 14.4 for the 99.9% request-success objective.
+        - alert: PlatformApiAvailabilityBudgetSlowBurn
+          expr: |
+            (platform_api:availability_burn_rate:6h > 6)
+              and
+            (platform_api:availability_burn_rate:30m > 6)
+          for: 15m
+          labels:
+            severity: warning
+            service: platform-api
+            slo: availability
+          annotations:
+            summary: Platform API is steadily consuming its availability budget
+            description: The 6-hour and 30-minute error-budget burn rates both exceed 6 for the 99.9% request-success objective.
+        - alert: PlatformApiLatencyObjectiveAtRisk
+          expr: |
+            (platform_api:http_request_duration_milliseconds:p95_5m > 500)
+              and
+            (platform_api:http_request_duration_milliseconds:p95_30m > 500)
+              and
+            (platform_api:http_requests:rate5m > 0)
+          for: 10m
+          labels:
+            severity: warning
+            service: platform-api
+            slo: latency
+          annotations:
+            summary: Platform API p95 latency is above its objective
+            description: The 5-minute and 30-minute p95 request latency both exceed the 500 millisecond objective while the service is receiving traffic.

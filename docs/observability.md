@@ -2,7 +2,7 @@
 
 I run a small, independent observability stack in each cluster. Prometheus stores metrics, the OpenTelemetry Collector receives Istio spans, Tempo stores traces, and Grafana provides a local dashboard. Nothing in this boundary sends telemetry or credentials between clouds.
 
-This is an evidence foundation rather than a production retention design. It proves that each cluster can discover the platform workload, collect mesh request metrics, receive distributed traces, and expose those signals to an operator before I add SLO evaluation and incident automation.
+This is an evidence foundation rather than a production retention design. It proves that each cluster can discover the platform workload, collect mesh request metrics, receive distributed traces, evaluate short-window service objectives, and expose those signals to an operator.
 
 ## Topology and ownership
 
@@ -10,18 +10,19 @@ Each cluster has an `observability` namespace with three pinned Helm releases:
 
 | Release          | Chart version                       | Responsibility                                                                  |
 | ---------------- | ----------------------------------- | ------------------------------------------------------------------------------- |
-| `observability`  | `kube-prometheus-stack` `87.17.0`   | Prometheus Operator, Prometheus, Grafana, kube-state-metrics, and node exporter |
+| `observability`  | `kube-prometheus-stack` `87.17.0`   | Prometheus Operator, Prometheus, Alertmanager, Grafana, and metrics exporters   |
 | `otel-collector` | `opentelemetry-collector` `0.165.0` | OTLP ingestion, Kubernetes metadata enrichment, batching, and trace export      |
 | `tempo`          | `tempo` `2.2.3`                     | Single-binary local trace storage and search                                    |
 
 Helm owns these foundations because the charts install CRDs, ClusterRoles, admission resources, and other cluster-scoped objects. I do not grant Argo CD that cluster-wide surface.
 
-Argo CD owns only two resources in `platform`:
+Argo CD owns only three resource types in `platform`:
 
-- a `PodMonitor` that discovers the `platform-api` sidecar metrics port; and
-- an Istio `Telemetry` resource that selects the named OpenTelemetry tracing provider.
+- a `PodMonitor` that discovers the `platform-api` sidecar metrics port;
+- an Istio `Telemetry` resource that selects the named OpenTelemetry tracing provider; and
+- a `PrometheusRule` with the platform API recording and alerting rules.
 
-The matching Role and AppProject permit only `PodMonitor` and `Telemetry` in `platform`. They cannot manage Secrets, workloads, RBAC, other namespaces, or cluster-scoped resources.
+The matching Role and AppProject permit only `PodMonitor`, `PrometheusRule`, and `Telemetry` in `platform`. They cannot manage Secrets, workloads, RBAC, other namespaces, or cluster-scoped resources.
 
 ## Metrics path
 
@@ -47,11 +48,11 @@ Tempo uses local ephemeral storage with six-hour retention. Prometheus also keep
 
 ## Capacity and exposure
 
-Prometheus, Tempo, the Collector, Grafana, the operator, and metadata exporters all have explicit requests and limits. Prometheus, Tempo, and the Collector each run one replica to fit the reviewed two-node cluster baseline. The monitoring data plane is therefore not highly available yet.
+Prometheus, Alertmanager, Tempo, the Collector, Grafana, the operator, and metadata exporters all have explicit requests and limits. Prometheus, Alertmanager, Tempo, and the Collector each run one replica to fit the reviewed two-node cluster baseline. The monitoring data plane is therefore not highly available yet.
 
 All Services remain `ClusterIP`. There is no public Grafana, Prometheus, Collector, or Tempo endpoint. Grafana uses its chart-generated administrator Secret, and the repository never stores or prints the generated password.
 
-Alertmanager and the default Prometheus rules are disabled. SLO rules and alert routing need an explicit design instead of inheriting a large generic ruleset before ownership and notification paths exist.
+The chart's broad default rule bundle remains disabled. I enable an internal-only Alertmanager with a deliberately empty `slo-null` receiver, so Prometheus can prove alert delivery, grouping, and silencing without storing notification credentials or contacting an external service. The focused SLO design is documented in [SLO evaluation and alert routing](slo-alerting.md).
 
 ## Bootstrap
 
@@ -76,11 +77,13 @@ The bootstrap performs these checks in each cluster:
 4. install the three pinned Helm releases and wait for their resources;
 5. apply the restricted Role, AppProject, and Application;
 6. synchronize the policy through namespace-safe Argo CD core mode;
-7. wait for Prometheus, Grafana, exporters, Tempo, and the Collector;
-8. verify the exact tracing provider, sample rate, and metrics endpoint in the live policy;
+7. wait for Prometheus, Alertmanager, Grafana, exporters, Tempo, and the Collector;
+8. verify the exact tracing provider, sample rate, metrics endpoint, and SLO rule names in the live policy;
 9. send requests through the cluster's fixed ingress address;
 10. query Prometheus for the platform request metric; and
-11. query Tempo for at least one trace.
+11. require both SLO rule groups to report healthy evaluations;
+12. require Alertmanager to report the reviewed internal route; and
+13. query Tempo for at least one trace.
 
 The status command repeats the rollout, policy, metrics, and trace assertions. It generates a small amount of traffic so the evidence check does not depend on a recent manual request.
 
@@ -116,4 +119,4 @@ I substitute `$AKS_CONTEXT` to access the other independent Grafana instance. If
 
 The bootstrap uses `helm upgrade --install`, declarative Kubernetes apply, and manual Argo CD synchronization. A safe rerun reconciles the same pinned chart versions and policy. A chart upgrade requires updating the values, version constants, CI rendering, and this document together.
 
-This boundary does not yet include durable object storage, highly available telemetry backends, TLS or single sign-on for Grafana, application-native instrumentation, recording rules, SLOs, alert routing, logs, or cross-cluster aggregation. Those additions should follow the same explicit ownership and credential boundaries.
+This boundary does not yet include durable object storage, highly available telemetry backends, TLS or single sign-on for Grafana, application-native instrumentation, outbound notification receivers, logs, or cross-cluster aggregation. Those additions should follow the same explicit ownership and credential boundaries.
