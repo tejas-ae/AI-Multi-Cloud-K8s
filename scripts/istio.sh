@@ -80,7 +80,7 @@ wait_for_ingress_ip() {
   local actual_ip=""
   local attempt
 
-  for attempt in {1..60}; do
+  for ((attempt = 1; attempt <= 60; attempt++)); do
     actual_ip="$(kubectl --context "$context" --namespace "$ISTIO_INGRESS_NAMESPACE" \
       get service istio-ingress \
       --output jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
