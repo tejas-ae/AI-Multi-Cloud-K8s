@@ -3,6 +3,7 @@ createClusterRoles: false
 
 configs:
   cm:
+    create: true
     application.resourceTrackingMethod: annotation
     exec.enabled: false
     statusbadge.enabled: false

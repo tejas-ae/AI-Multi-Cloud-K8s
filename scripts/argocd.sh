@@ -57,10 +57,14 @@ install_argocd() {
     --kube-context "$context" \
     --namespace "$ARGOCD_NAMESPACE" \
     --create-namespace \
+    --reset-values \
     --version "$ARGOCD_CHART_VERSION" \
     --values "$ROOT_DIR/gitops/bootstrap/argocd/values.yaml" \
     --wait \
     --timeout 10m
+
+  kubectl --context "$context" --namespace "$ARGOCD_NAMESPACE" \
+    get configmap argocd-cm >/dev/null
 
   kubectl --context "$context" --namespace "$ARGOCD_NAMESPACE" \
     rollout status statefulset/argocd-application-controller --timeout=10m
