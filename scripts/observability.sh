@@ -159,6 +159,23 @@ start_port_forward() {
   return 1
 }
 
+wait_for_resource() {
+  local context="$1"
+  local resource="$2"
+  local timeout_seconds="$3"
+  local elapsed=0
+
+  until kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
+    get "$resource" >/dev/null 2>&1; do
+    if ((elapsed >= timeout_seconds)); then
+      echo "timed out waiting for ${resource} to be created" >&2
+      return 1
+    fi
+    sleep 5
+    ((elapsed += 5))
+  done
+}
+
 generate_trace_traffic() {
   local ingress_ip="$1"
   local alias="$2"
@@ -357,6 +374,8 @@ verify_runtime() {
     rollout status daemonset/observability-prometheus-node-exporter --timeout=10m
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     rollout status statefulset/prometheus-observability-kube-prometh-prometheus --timeout=10m
+  wait_for_resource "$context" \
+    statefulset/alertmanager-observability-kube-prometh-alertmanager 600
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
     rollout status statefulset/alertmanager-observability-kube-prometh-alertmanager --timeout=10m
   kubectl --context "$context" --namespace "$OBSERVABILITY_NAMESPACE" \
