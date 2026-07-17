@@ -48,6 +48,8 @@ jobs:
           kubectl kustomize gitops/workloads/bootstrap >/dev/null
           kubectl kustomize gitops/workloads/platform-api >"$workload_manifest"
           grep -q -- '--udp-port=8081' "$workload_manifest"
+          grep -q -- 'maxSurge: 0' "$workload_manifest"
+          grep -q -- 'maxUnavailable: 1' "$workload_manifest"
 
       - name: Render Istio chart values
         run: |

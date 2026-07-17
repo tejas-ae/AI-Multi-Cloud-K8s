@@ -18,7 +18,7 @@ The `netexec` UDP readiness listener remains enabled because its `/healthz` hand
 
 Each cluster runs two replicas. Required pod anti-affinity places the replicas on different worker nodes, and a PodDisruptionBudget keeps at least one available during voluntary disruption.
 
-The Deployment uses a rolling update with zero allowed unavailability. Startup, readiness, and liveness probes all use the same server-owned `/healthz` endpoint.
+The Deployment uses a rolling update with no surge and one permitted unavailable replica. This lets Kubernetes remove one old Pod before placing its replacement on the freed worker, which is required when two replicas with hard anti-affinity fill the two-node baseline. The remaining replica stays available, consistent with the PodDisruptionBudget. Startup, readiness, and liveness probes all use the same server-owned `/healthz` endpoint.
 
 Resource requests remain deliberately small because this workload validates the platform rather than generating production load. Both requests and limits are explicit so scheduling and later capacity changes remain reviewable.
 
