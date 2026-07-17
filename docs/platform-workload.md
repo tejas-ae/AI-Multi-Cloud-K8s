@@ -120,7 +120,7 @@ The workload should be removed through its Argo CD Application before deleting i
 This workload proves an HTTP health path, but it does not yet provide:
 
 - HTTPS certificates or a custom public domain;
-- application-specific telemetry;
+- application-native spans and business metrics;
 - service-level objectives or alerts;
 - failure injection or progressive traffic shifting;
 - a production container build and provenance chain; or

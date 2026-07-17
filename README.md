@@ -14,6 +14,8 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - Independent Argo CD control planes with restricted in-cluster delivery
 - Separate Istio meshes with strict workload mTLS and redundant ingress
 - A Git-managed verification workload served through both clouds and Traffic Manager
+- Per-cluster Prometheus, OpenTelemetry Collector, Tempo, and Grafana foundations
+- Git-managed Istio metrics discovery and distributed-tracing policy
 
 ## Architecture
 
@@ -21,7 +23,7 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - GitHub Actions handles CI and immutable image publication.
 - Argo CD is installed in each cluster and owns local delivery from Git.
 - Istio provides local service identity and strict mTLS; failure injection and traffic shifting come with the reliability tests.
-- Prometheus, OpenTelemetry, Tempo, and Grafana will provide incident evidence.
+- Prometheus, OpenTelemetry, Tempo, and Grafana provide local metrics and traces without cross-cloud telemetry credentials.
 - Claude will return schema-validated diagnoses tied to supplied evidence IDs.
 - OPA and human approval will gate remediation.
 - Every traffic change will be verified and rolled back when SLOs get worse.
@@ -46,4 +48,4 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The cloud foundation, Argo CD installations, and independent Istio meshes are live in both clusters. The platform verification workload closes the ingress and Traffic Manager health path before I add application telemetry, SLOs, failure injection, and automated remediation.
+The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics discovery and Istio tracing now close the first evidence path before I add SLOs, failure injection, and automated remediation.

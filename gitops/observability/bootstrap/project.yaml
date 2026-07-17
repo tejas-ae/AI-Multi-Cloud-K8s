@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: observability-policy
+  namespace: argocd
+spec:
+  description: Restricted delivery boundary for platform metrics and tracing policy.
+  sourceRepos:
+    - https://github.com/tejas-ae/AI-Multi-Cloud-K8s.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: platform
+  namespaceResourceWhitelist:
+    - group: monitoring.coreos.com
+      kind: PodMonitor
+    - group: telemetry.istio.io
+      kind: Telemetry

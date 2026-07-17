@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: bootstrap-macos bootstrap-cloud-foundation preflight k8s-versions verify-clean tf-init tf-fmt tf-validate tf-plan tf-review tf-apply tf-destroy tf-output gitops-bootstrap gitops-status argocd-gke-ui argocd-aks-ui mesh-bootstrap mesh-status workload-bootstrap workload-status
+.PHONY: bootstrap-macos bootstrap-cloud-foundation preflight k8s-versions verify-clean tf-init tf-fmt tf-validate tf-plan tf-review tf-apply tf-destroy tf-output gitops-bootstrap gitops-status argocd-gke-ui argocd-aks-ui mesh-bootstrap mesh-status workload-bootstrap workload-status observability-bootstrap observability-status observability-gke-ui observability-aks-ui
 
 bootstrap-macos:
 	./scripts/bootstrap-macos.sh --execute
@@ -64,3 +64,15 @@ workload-bootstrap:
 
 workload-status:
 	./scripts/platform.sh status
+
+observability-bootstrap:
+	./scripts/observability.sh bootstrap
+
+observability-status:
+	./scripts/observability.sh status
+
+observability-gke-ui:
+	./scripts/observability.sh port-forward gke
+
+observability-aks-ui:
+	./scripts/observability.sh port-forward aks

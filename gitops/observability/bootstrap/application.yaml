@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-policy
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: ai-multicloud-k8s
+spec:
+  project: observability-policy
+  source:
+    repoURL: https://github.com/tejas-ae/AI-Multi-Cloud-K8s.git
+    targetRevision: main
+    path: gitops/observability/policy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false

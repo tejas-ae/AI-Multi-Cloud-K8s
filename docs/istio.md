@@ -55,6 +55,8 @@ A Git-managed `PeerAuthentication` named `default` requires `STRICT` mutual TLS 
 
 Strict mTLS requires both ends of a service connection to participate in the mesh. I therefore deploy application workloads into `platform` only after confirming sidecar injection, and I restart existing workloads after adding an injection label.
 
+The mesh configuration also declares an OpenTelemetry tracing provider at the internal Collector Service. A namespaced `Telemetry` resource enables that provider only for `platform`; declaring the provider does not broaden mesh policy or expose a public telemetry endpoint.
+
 ## Least-privilege Argo CD access
 
 The operator bootstrap creates one Role in `platform`. It permits the Argo CD application controller to manage only `PeerAuthentication` resources in that namespace. The matching AppProject permits:
@@ -114,6 +116,8 @@ The workload bootstrap then adds an end-to-end check that proves:
 - Traffic Manager can reach the same health route.
 
 The complete workload boundary and commands are in [Platform verification workload](platform-workload.md).
+
+Metrics discovery, tracing policy, and the local evidence stores are described in [Observability foundation](observability.md).
 
 ## Upgrade boundary
 

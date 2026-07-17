@@ -1,0 +1,29 @@
+fullnameOverride: tempo
+replicas: 1
+revisionHistoryLimit: 2
+
+tempo:
+  reportingEnabled: false
+  memBallastSizeMbs: 64
+  retention: 6h
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+persistence:
+  enabled: false
+
+service:
+  type: ClusterIP
+
+serviceMonitor:
+  enabled: false
