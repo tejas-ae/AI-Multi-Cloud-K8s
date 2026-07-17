@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "terraform/**"
+      - "config/**"
       - "scripts/**"
       - "Makefile"
       - ".github/workflows/terraform-ci.yml"
@@ -12,6 +13,7 @@ on:
       - main
     paths:
       - "terraform/**"
+      - "config/**"
       - "scripts/**"
       - "Makefile"
       - ".github/workflows/terraform-ci.yml"
