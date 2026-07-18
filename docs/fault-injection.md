@@ -12,6 +12,6 @@ CONFIRM_FAULT_INJECTION=AI-Multi-Cloud-K8s make fault-clear
 make fault-status
 ```
 
-`fault-load` sends traffic only to the GKE ingress for a bounded duration. `fault-capture` reads the source-side HTTP 503 rate and prints whether the short-window availability alert is firing. It does not write evidence, modify Alertmanager, or change traffic weights.
+`fault-load` sends traffic only to the GKE ingress for a bounded duration. Prometheus also scrapes the local ingress gateway, where Istio generates this deliberate fault response. `fault-capture` reads the source-side HTTP 503 rate and prints whether the short-window availability alert is firing. It does not write evidence, modify Alertmanager, or change traffic weights.
 
 I clear the fault before reviewing any traffic proposal. The later traffic change is a separate Git review and Terraform apply, not a consequence of this script.

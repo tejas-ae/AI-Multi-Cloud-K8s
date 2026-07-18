@@ -70,6 +70,7 @@ jobs:
           grep -q 'PlatformApiAvailabilityBudgetSlowBurn' "$observability_policy_manifest"
           grep -q 'PlatformApiLatencyObjectiveAtRisk' "$observability_policy_manifest"
           grep -q 'PlatformApiAvailabilityDemo' "$observability_policy_manifest"
+          grep -q 'name: istio-ingress' "$observability_policy_manifest"
 
       - name: Render Istio chart values
         run: |

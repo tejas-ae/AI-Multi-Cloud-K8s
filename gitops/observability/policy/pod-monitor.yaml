@@ -14,3 +14,23 @@ spec:
       path: /stats/prometheus
       interval: 15s
       scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: istio-ingress
+  namespace: platform
+  labels:
+    telemetry.ai-multicloud-k8s/enabled: "true"
+spec:
+  namespaceSelector:
+    matchNames:
+      - istio-ingress
+  selector:
+    matchLabels:
+      app: istio-ingress
+  podMetricsEndpoints:
+    - port: http-envoy-prom
+      path: /stats/prometheus
+      interval: 15s
+      scrapeTimeout: 10s

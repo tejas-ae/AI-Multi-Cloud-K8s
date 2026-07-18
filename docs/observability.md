@@ -18,7 +18,7 @@ Helm owns these foundations because the charts install CRDs, ClusterRoles, admis
 
 Argo CD owns only three resource types in `platform`:
 
-- a `PodMonitor` that discovers the `platform-api` sidecar metrics port;
+- `PodMonitor` resources that discover the `platform-api` sidecar and GKE/AKS ingress-gateway metrics ports;
 - an Istio `Telemetry` resource that selects the named OpenTelemetry tracing provider; and
 - a `PrometheusRule` with the platform API recording and alerting rules.
 
