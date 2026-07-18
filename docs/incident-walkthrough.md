@@ -8,11 +8,21 @@ Both platform deployments were ready behind their Istio ingress gateways. Azure 
 
 Prometheus, Grafana, Alertmanager, and Tempo were available only through local Kubernetes port-forwards. No monitoring dashboard or administrative service was exposed publicly.
 
+![Argo CD applications healthy and synchronized](images/evidence/argocd-applications-healthy.png)
+
+![Grafana Prometheus overview during the healthy baseline](images/evidence/grafana-prometheus-overview.png)
+
 ## 2. Controlled failure
 
 I explicitly confirmed the fault command before it modified the GKE VirtualService. The injected rule returned HTTP 503 only for application traffic; `/healthz` remained untouched so platform health and the controlled user-visible failure stayed distinct.
 
 The bounded load generator completed, and the source-side Istio metric reached 8.91 HTTP 503 requests per second. The `PlatformApiAvailabilityDemo` rule fired and appeared through the internal Alertmanager route.
+
+![Prometheus source-side HTTP 503 request rate](images/evidence/prometheus-http-503-rate.png)
+
+![Prometheus availability alert transitioning to firing](images/evidence/prometheus-availability-alert.png)
+
+![Grafana Alertmanager overview showing the incident signal](images/evidence/grafana-alertmanager-overview.png)
 
 ## 3. Evidence-grounded analysis
 
@@ -26,11 +36,15 @@ The live Claude analyzer returned structured JSON with confidence 0.85. It recom
 
 The deterministic validator checked the action type, evidence identifiers, evidence freshness, destination health, confidence threshold, maximum 20-point shift, approval flag, and rollback weights. A separate unsafe fixture was rejected.
 
+![Claude structured diagnosis with evidence identifiers, approval requirement, and rollback weights](images/evidence/claude-structured-diagnosis.png)
+
 ## 4. Human-approved remediation
 
 Claude did not change the platform. I reviewed the proposed two-line Git diff and committed it. Terraform then produced a saved plan.
 
 Before apply, a JSON assertion proved that the plan contained exactly two in-place updates: the GKE Traffic Manager endpoint weight changed to 30 and the AKS endpoint weight changed to 70. No resource creation, replacement, or deletion was permitted.
+
+![Traffic Manager endpoints online after the approved GKE 30 and AKS 70 shift](images/evidence/traffic-manager-shift-30-70.png)
 
 ## 5. Recovery verification
 

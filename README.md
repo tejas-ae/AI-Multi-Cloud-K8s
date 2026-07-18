@@ -19,6 +19,28 @@ I ran one bounded GKE availability incident from detection through rollback:
 
 The repository contains sanitized fixtures and an offline replay, so the decision path can be tested without cloud credentials or an Anthropic API key.
 
+## Visual evidence
+
+The live demonstration produced a complete evidence trail from healthy GitOps state through detection, diagnosis, remediation, and recovery.
+
+### Healthy GitOps baseline
+
+![Argo CD applications healthy and synchronized](docs/images/evidence/argocd-applications-healthy.png)
+
+### Controlled GKE availability failure
+
+![Prometheus source-side HTTP 503 request rate during the controlled incident](docs/images/evidence/prometheus-http-503-rate.png)
+
+### Evidence-grounded Claude recommendation
+
+![Claude structured incident diagnosis and bounded traffic-shift proposal](docs/images/evidence/claude-structured-diagnosis.png)
+
+### Human-approved traffic shift
+
+![Azure Traffic Manager endpoints online at GKE 30 and AKS 70](docs/images/evidence/traffic-manager-shift-30-70.png)
+
+The [incident walkthrough](docs/incident-walkthrough.md) contains the supporting Grafana, Prometheus, and Alertmanager views.
+
 ## What I built
 
 - Terraform modules for GKE, AKS, isolated networking, managed identities, fixed ingress addresses, and Azure Traffic Manager
@@ -89,4 +111,4 @@ unset ANTHROPIC_API_KEY
 
 ## Current status
 
-The cloud foundation, delivery layer, workload, observability stack, controlled incident, live Claude analysis, human-approved traffic shift, recovery verification, and Git rollback have all been exercised. The remaining portfolio work is publishing sanitized visual evidence and actual cost measurements, followed by mandatory destruction and verification of every billable resource.
+The cloud foundation, delivery layer, workload, observability stack, controlled incident, live Claude analysis, human-approved traffic shift, recovery verification, Git rollback, and visual evidence set have all been exercised and published. The remaining portfolio work is publishing actual cost measurements, followed by mandatory destruction and verification of every billable resource.
