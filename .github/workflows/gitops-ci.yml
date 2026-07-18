@@ -9,6 +9,7 @@ on:
       - "scripts/platform.sh"
       - "scripts/observability.sh"
       - "scripts/incident.sh"
+      - "scripts/fault.sh"
       - "ai_copilot/**"
       - "examples/**"
       - "config/traffic-weights.env"
@@ -24,6 +25,7 @@ on:
       - "scripts/platform.sh"
       - "scripts/observability.sh"
       - "scripts/incident.sh"
+      - "scripts/fault.sh"
       - "ai_copilot/**"
       - "examples/**"
       - "config/traffic-weights.env"
@@ -125,11 +127,13 @@ jobs:
           bash -n scripts/platform.sh
           bash -n scripts/observability.sh
           bash -n scripts/incident.sh
+          bash -n scripts/fault.sh
           shellcheck scripts/argocd.sh
           shellcheck scripts/istio.sh
           shellcheck scripts/platform.sh
           shellcheck scripts/observability.sh
           shellcheck scripts/incident.sh
+          shellcheck scripts/fault.sh
 
       - name: Replay incident policy
         run: |
