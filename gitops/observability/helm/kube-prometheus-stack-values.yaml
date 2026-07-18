@@ -1,6 +1,7 @@
 alertmanager:
   enabled: true
-  config:
+  tplConfig: true
+  stringConfig: |-
     global:
       resolve_timeout: 5m
     route:
