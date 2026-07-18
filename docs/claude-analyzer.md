@@ -10,11 +10,10 @@ I set these values only in my local terminal. I do not put them in `.env`, Git, 
 
 ```bash
 export ANTHROPIC_API_KEY='set-this-in-your-shell'
-export ANTHROPIC_MODEL='a-model-enabled-for-your-Anthropic-account'
 make incident-claude
 ```
 
-The command uses the sanitized incident fixture, prints only the policy-approved summary, and exits nonzero if Claude returns invalid JSON or violates any guardrail. The existing offline commands remain the repeatable test path:
+The command lists the models enabled for my Anthropic account, selects the first Sonnet model returned, uses the sanitized incident fixture, and prints only the policy-approved summary. I can set `ANTHROPIC_MODEL` locally to override automatic selection. The command exits nonzero if Claude returns invalid JSON or violates any guardrail. The existing offline commands remain the repeatable test path:
 
 ```bash
 make incident-replay

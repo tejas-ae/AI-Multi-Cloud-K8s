@@ -14,6 +14,7 @@ from typing import Any
 
 
 API_URL = "https://api.anthropic.com/v1/messages"
+MODELS_URL = "https://api.anthropic.com/v1/models?limit=100"
 API_VERSION = "2023-06-01"
 
 
@@ -104,6 +105,35 @@ def extract_json(text: str) -> dict[str, Any]:
     return value
 
 
+def discover_model(api_key: str) -> str:
+    request = urllib.request.Request(
+        MODELS_URL,
+        method="GET",
+        headers={
+            "anthropic-version": API_VERSION,
+            "x-api-key": api_key,
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        raise ClaudeError(f"cannot list enabled Claude models: HTTP {error.code}") from error
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+        raise ClaudeError("cannot list enabled Claude models") from error
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(data, list):
+        raise ClaudeError("Claude model list was missing data")
+    model_ids = [
+        item.get("id")
+        for item in data
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item["id"]
+    ]
+    if not model_ids:
+        raise ClaudeError("this Anthropic account has no enabled models")
+    return next((model_id for model_id in model_ids if "sonnet" in model_id.lower()), model_ids[0])
+
+
 def call_claude(request_body: bytes, api_key: str) -> dict[str, Any]:
     request = urllib.request.Request(
         API_URL,
@@ -155,11 +185,11 @@ def main() -> int:
             diagnosis = read_json(args.offline_response)
         else:
             api_key = os.environ.get("ANTHROPIC_API_KEY")
-            model = os.environ.get("ANTHROPIC_MODEL")
             if not api_key:
                 raise ClaudeError("ANTHROPIC_API_KEY must be set locally")
-            if not model:
-                raise ClaudeError("ANTHROPIC_MODEL must be set locally")
+            configured_model = os.environ.get("ANTHROPIC_MODEL", "auto")
+            model = discover_model(api_key) if configured_model == "auto" else configured_model
+            print(f"Claude model selected: {model}", file=sys.stderr)
             diagnosis = call_claude(build_request(incident, weights, model), api_key)
     except ClaudeError as error:
         print(f"Claude analysis failed: {error}", file=sys.stderr)
