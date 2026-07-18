@@ -23,6 +23,12 @@ The repository contains sanitized fixtures and an offline replay, so the decisio
 
 The live demonstration produced a complete evidence trail from healthy GitOps state through detection, diagnosis, remediation, and recovery.
 
+### Live multi-cloud foundation
+
+![GKE cluster running with two nodes](docs/images/evidence/gcp-gke-cluster-overview.png)
+
+![Azure resource dashboard with AKS, Traffic Manager, networking, identities, and ingress infrastructure](docs/images/evidence/azure-multicloud-resources.png)
+
 ### Healthy GitOps baseline
 
 ![Argo CD applications healthy and synchronized](docs/images/evidence/argocd-applications-healthy.png)

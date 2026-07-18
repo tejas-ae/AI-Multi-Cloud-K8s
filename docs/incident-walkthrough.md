@@ -8,6 +8,10 @@ Both platform deployments were ready behind their Istio ingress gateways. Azure 
 
 Prometheus, Grafana, Alertmanager, and Tempo were available only through local Kubernetes port-forwards. No monitoring dashboard or administrative service was exposed publicly.
 
+![GKE cluster running with two nodes](images/evidence/gcp-gke-cluster-overview.png)
+
+![Azure resource dashboard showing the AKS and Traffic Manager foundation](images/evidence/azure-multicloud-resources.png)
+
 ![Argo CD applications healthy and synchronized](images/evidence/argocd-applications-healthy.png)
 
 ![Grafana Prometheus overview during the healthy baseline](images/evidence/grafana-prometheus-overview.png)
@@ -23,6 +27,10 @@ The bounded load generator completed, and the source-side Istio metric reached 8
 ![Prometheus availability alert transitioning to firing](images/evidence/prometheus-availability-alert.png)
 
 ![Grafana Alertmanager overview showing the incident signal](images/evidence/grafana-alertmanager-overview.png)
+
+![Grafana Explore showing the active HTTP 503 load-test plateau](images/evidence/grafana-load-test-http-503.png)
+
+![Prometheus showing repeated bounded load-test windows returning to zero](images/evidence/prometheus-load-test-windows.png)
 
 ## 3. Evidence-grounded analysis
 
@@ -49,6 +57,8 @@ Before apply, a JSON assertion proved that the plan contained exactly two in-pla
 ## 5. Recovery verification
 
 After the approved apply, Traffic Manager reported both endpoints Enabled and Online at GKE 30 / AKS 70. Five independent health requests returned HTTP 200. The fault was inactive, both workload deployments rolled out successfully, and both ingress health routes passed.
+
+![Post-load-test verification showing zero HTTP 503 rate, inactive fault, and healthy workloads](images/evidence/post-load-test-recovery.png)
 
 ## 6. Git rollback
 
