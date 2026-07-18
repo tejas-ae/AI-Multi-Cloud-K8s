@@ -49,4 +49,11 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics, traces, SLO rules, and internal Alertmanager routing are verified. I now have a local replay that validates an evidence-backed traffic recommendation and rejects unsafe remediation before I connect a live analyzer.
+The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics, traces, SLO rules, and internal Alertmanager routing are verified. A controlled GKE-only HTTP 503 incident fired the short-window availability alert, was observed through Prometheus, Grafana, and Alertmanager, then recovered cleanly. I also have a local replay that validates an evidence-backed traffic recommendation and rejects unsafe remediation before I connect a live analyzer.
+
+## Demonstration and evidence
+
+- [Portfolio demonstration runbook](docs/demo-runbook.md)
+- [Controlled fault design](docs/fault-injection.md)
+- [Incident-response guardrails](docs/incident-response.md)
+- [Sanitized demonstration test summary](evidence/test-summary.md)
