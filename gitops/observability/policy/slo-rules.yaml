@@ -108,17 +108,17 @@ spec:
           annotations:
             summary: Platform API p95 latency is above its objective
             description: The 5-minute and 30-minute p95 request latency both exceed the 500 millisecond objective while the service is receiving traffic.
-        - alert: PlatformApiLatencyDemo
+        - alert: PlatformApiAvailabilityDemo
           expr: |
-            histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter="source",destination_service_name="platform-api"}[1m]))) > 500
+            sum(rate(istio_requests_total{reporter="source",response_code="503"}[1m])) > 0
               and
-            sum(rate(istio_requests_total{reporter="destination",destination_service_name="platform-api"}[1m])) > 0
+            sum(rate(istio_requests_total{reporter="source"}[1m])) > 0
           for: 1m
           labels:
             severity: warning
             service: platform-api
-            slo: latency
+            slo: availability
             demonstration: "true"
           annotations:
-            summary: Platform API demonstration latency alert is firing
-            description: The one-minute p95 latency is above 500 milliseconds while controlled demonstration traffic is present.
+            summary: Platform API demonstration availability alert is firing
+            description: A controlled GKE ingress fault is returning HTTP 503 responses while demonstration traffic is present.
