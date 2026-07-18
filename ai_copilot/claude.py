@@ -84,7 +84,6 @@ def build_request(incident: dict[str, Any], weights: dict[str, int], model: str)
     body = {
         "model": model,
         "max_tokens": 1200,
-        "temperature": 0,
         "system": "You are a cautious SRE assistant. Return JSON only; never include secrets.",
         "messages": [{"role": "user", "content": json.dumps(prompt, separators=(",", ":"))}],
     }
