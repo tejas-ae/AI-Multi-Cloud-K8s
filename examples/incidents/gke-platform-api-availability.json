@@ -1,0 +1,32 @@
+{
+  "schema_version": "v1",
+  "incident_id": "gke-platform-api-availability-demo",
+  "alert": "PlatformApiAvailabilityDemo",
+  "source_cluster": "gke",
+  "destination_cluster": "aks",
+  "destination": {
+    "healthy": true,
+    "available_replicas": 2,
+    "minimum_available_replicas": 2
+  },
+  "evidence": [
+    {
+      "id": "prometheus-503-rate",
+      "type": "metric",
+      "age_seconds": 15,
+      "summary": "Prometheus measured 8.91 source-side HTTP 503 responses per second during the bounded GKE fault."
+    },
+    {
+      "id": "tempo-gke-ingress-trace",
+      "type": "trace",
+      "age_seconds": 45,
+      "summary": "Tempo contains a recent GKE ingress trace scoped to the platform API application request path."
+    },
+    {
+      "id": "aks-rollout-health",
+      "type": "kubernetes",
+      "age_seconds": 30,
+      "summary": "The AKS platform API deployment has two ready replicas and its ingress health route is ready."
+    }
+  ]
+}

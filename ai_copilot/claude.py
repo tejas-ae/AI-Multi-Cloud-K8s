@@ -76,6 +76,8 @@ def build_request(incident: dict[str, Any], weights: dict[str, int], model: str)
             "Human approval must remain true.",
             "Reference every supplied evidence ID exactly once.",
             "Use the supplied current weights as rollback_weights.",
+            "A shift_traffic recommendation is policy-eligible only when confidence is at least 0.80.",
+            "Do not inflate confidence; base it on agreement between metric, trace, and Kubernetes evidence.",
         ],
         "required_schema": schema,
         "current_traffic_weights": weights,

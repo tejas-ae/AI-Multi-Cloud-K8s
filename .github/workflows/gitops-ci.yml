@@ -145,10 +145,10 @@ jobs:
           claude_response="$(mktemp)"
           trap 'rm -f "$claude_response"' EXIT
           python3 ai_copilot/claude.py \
-            examples/incidents/gke-platform-api-latency.json \
-            --offline-response examples/responses/gke-platform-api-latency-claude.json >"$claude_response"
+            examples/incidents/gke-platform-api-availability.json \
+            --offline-response examples/responses/gke-platform-api-availability-claude.json >"$claude_response"
           python3 ai_copilot/incident.py \
-            examples/incidents/gke-platform-api-latency.json \
+            examples/incidents/gke-platform-api-availability.json \
             "$claude_response" --format json
 
       - name: Check repository publication

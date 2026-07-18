@@ -4,7 +4,7 @@ I keep the incident workflow intentionally narrow. A diagnosis may recommend a s
 
 ## Local replay
 
-The repository includes a sanitized GKE latency incident and a recorded structured diagnosis. I can validate the full decision without cloud access or an API key:
+The repository includes a sanitized GKE availability incident based on the controlled HTTP 503 demonstration and a recorded structured diagnosis. I can validate the full decision without cloud access or an API key:
 
 ```bash
 make incident-replay

@@ -1,12 +1,12 @@
 {
   "schema_version": "v1",
-  "incident_id": "gke-platform-api-latency-demo",
+  "incident_id": "gke-platform-api-availability-demo",
   "summary": "Move traffic immediately.",
   "probable_cause": "Unverified.",
   "confidence": 0.99,
   "evidence_ids": [
-    "prometheus-p95",
-    "tempo-request-trace",
+    "prometheus-503-rate",
+    "tempo-gke-ingress-trace",
     "aks-rollout-health"
   ],
   "recommendation": {

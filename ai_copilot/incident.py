@@ -14,6 +14,7 @@ ALLOWED_ALERTS = {
     "PlatformApiAvailabilityBudgetFastBurn",
     "PlatformApiAvailabilityBudgetSlowBurn",
     "PlatformApiLatencyObjectiveAtRisk",
+    "PlatformApiAvailabilityDemo",
 }
 ALLOWED_CLUSTERS = {"gke", "aks"}
 MAX_WEIGHT_DELTA = 20

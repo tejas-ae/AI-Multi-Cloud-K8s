@@ -1,12 +1,12 @@
 {
   "schema_version": "v1",
-  "incident_id": "gke-platform-api-latency-demo",
-  "summary": "The GKE platform API is exceeding its latency objective while AKS is healthy.",
-  "probable_cause": "A bounded GKE request-path latency regression.",
+  "incident_id": "gke-platform-api-availability-demo",
+  "summary": "The controlled GKE application route is returning HTTP 503 while AKS remains healthy.",
+  "probable_cause": "A bounded GKE ingress availability fault.",
   "confidence": 0.91,
   "evidence_ids": [
-    "prometheus-p95",
-    "tempo-request-trace",
+    "prometheus-503-rate",
+    "tempo-gke-ingress-trace",
     "aks-rollout-health"
   ],
   "recommendation": {
