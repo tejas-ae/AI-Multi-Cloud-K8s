@@ -117,7 +117,7 @@ jobs:
             --values gitops/observability/helm/tempo-values.yaml >"$tempo_manifest"
           grep -q 'cluster: ci' "$prometheus_manifest"
           grep -q 'kind: Alertmanager' "$prometheus_manifest"
-          grep -q 'retention: 6h' "$prometheus_manifest"
+          grep -Eq 'retention: "?6h"?' "$prometheus_manifest"
           grep -q 'receiver: slo-null' <<<"$alertmanager_config"
           grep -q 'tempo.observability.svc.cluster.local:4317' "$collector_manifest"
           grep -q 'reporting_enabled: false' "$tempo_manifest"
