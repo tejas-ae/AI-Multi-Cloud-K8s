@@ -1,0 +1,23 @@
+{
+  "schema_version": "v1",
+  "incident_id": "gke-platform-api-latency-demo",
+  "summary": "Move traffic immediately.",
+  "probable_cause": "Unverified.",
+  "confidence": 0.99,
+  "evidence_ids": [
+    "prometheus-p95",
+    "tempo-request-trace",
+    "aks-rollout-health"
+  ],
+  "recommendation": {
+    "action": "delete_cluster",
+    "source_cluster": "gke",
+    "destination_cluster": "aks",
+    "weight_delta": 100,
+    "approval_required": false,
+    "rollback_weights": {
+      "gke": 50,
+      "aks": 50
+    }
+  }
+}

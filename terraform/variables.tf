@@ -104,10 +104,20 @@ variable "traffic_weight_gke" {
   description = "Initial public traffic weight for GKE."
   type        = number
   default     = 50
+
+  validation {
+    condition     = var.traffic_weight_gke >= 1 && var.traffic_weight_gke <= 99
+    error_message = "traffic_weight_gke must be between 1 and 99."
+  }
 }
 
 variable "traffic_weight_aks" {
   description = "Initial public traffic weight for AKS."
   type        = number
   default     = 50
+
+  validation {
+    condition     = var.traffic_weight_aks >= 1 && var.traffic_weight_aks <= 99
+    error_message = "traffic_weight_aks must be between 1 and 99."
+  }
 }

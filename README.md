@@ -25,9 +25,9 @@ I’m building a multi-cloud Kubernetes reliability platform across GKE and AKS.
 - Argo CD is installed in each cluster and owns local delivery from Git.
 - Istio provides local service identity and strict mTLS; failure injection and traffic shifting come with the reliability tests.
 - Prometheus, Alertmanager, OpenTelemetry, Tempo, and Grafana provide local metrics, alerts, and traces without cross-cloud telemetry credentials.
-- Claude will return schema-validated diagnoses tied to supplied evidence IDs.
-- OPA and human approval will gate remediation.
-- Every traffic change will be verified and rolled back when SLOs get worse.
+- A local replay validates Claude-shaped, evidence-grounded diagnoses before any live integration.
+- Deterministic policy checks and human approval gate remediation.
+- Every traffic change is a reviewed Git diff with recorded rollback weights.
 
 ## Guardrails
 
@@ -49,4 +49,4 @@ make tf-review
 
 The workstation and cloud readiness gate passes with zero failures. The Terraform foundation validates, the provider lock is committed, and the creation plan passes the resource-scope and security assertions.
 
-The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics discovery, Istio tracing, short-window SLO evaluation, and internal alert routing now close the first evidence path before I add controlled failure injection and automated remediation.
+The cloud foundation, Argo CD installations, independent Istio meshes, verification workload, and local observability stacks are live in both clusters. Metrics, traces, SLO rules, and internal Alertmanager routing are verified. I now have a local replay that validates an evidence-backed traffic recommendation and rejects unsafe remediation before I connect a live analyzer.

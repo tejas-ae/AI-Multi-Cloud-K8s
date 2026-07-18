@@ -1,0 +1,23 @@
+{
+  "schema_version": "v1",
+  "incident_id": "gke-platform-api-latency-demo",
+  "summary": "The GKE platform API is exceeding its latency objective while AKS is healthy.",
+  "probable_cause": "A bounded GKE request-path latency regression.",
+  "confidence": 0.91,
+  "evidence_ids": [
+    "prometheus-p95",
+    "tempo-request-trace",
+    "aks-rollout-health"
+  ],
+  "recommendation": {
+    "action": "shift_traffic",
+    "source_cluster": "gke",
+    "destination_cluster": "aks",
+    "weight_delta": 20,
+    "approval_required": true,
+    "rollback_weights": {
+      "gke": 50,
+      "aks": 50
+    }
+  }
+}

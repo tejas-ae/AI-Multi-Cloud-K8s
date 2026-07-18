@@ -1,0 +1,32 @@
+{
+  "schema_version": "v1",
+  "incident_id": "gke-platform-api-latency-demo",
+  "alert": "PlatformApiLatencyObjectiveAtRisk",
+  "source_cluster": "gke",
+  "destination_cluster": "aks",
+  "destination": {
+    "healthy": true,
+    "available_replicas": 2,
+    "minimum_available_replicas": 2
+  },
+  "evidence": [
+    {
+      "id": "prometheus-p95",
+      "type": "metric",
+      "age_seconds": 60,
+      "summary": "The GKE p95 latency objective is above its alert threshold."
+    },
+    {
+      "id": "tempo-request-trace",
+      "type": "trace",
+      "age_seconds": 75,
+      "summary": "A GKE ingress trace shows the latency on the platform API request path."
+    },
+    {
+      "id": "aks-rollout-health",
+      "type": "kubernetes",
+      "age_seconds": 45,
+      "summary": "The AKS platform API deployment has two ready replicas."
+    }
+  ]
+}

@@ -8,6 +8,10 @@ on:
       - "scripts/istio.sh"
       - "scripts/platform.sh"
       - "scripts/observability.sh"
+      - "scripts/incident.sh"
+      - "ai_copilot/**"
+      - "examples/**"
+      - "config/traffic-weights.env"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
   push:
@@ -19,6 +23,10 @@ on:
       - "scripts/istio.sh"
       - "scripts/platform.sh"
       - "scripts/observability.sh"
+      - "scripts/incident.sh"
+      - "ai_copilot/**"
+      - "examples/**"
+      - "config/traffic-weights.env"
       - "Makefile"
       - ".github/workflows/gitops-ci.yml"
 
@@ -116,10 +124,18 @@ jobs:
           bash -n scripts/istio.sh
           bash -n scripts/platform.sh
           bash -n scripts/observability.sh
+          bash -n scripts/incident.sh
           shellcheck scripts/argocd.sh
           shellcheck scripts/istio.sh
           shellcheck scripts/platform.sh
           shellcheck scripts/observability.sh
+          shellcheck scripts/incident.sh
+
+      - name: Replay incident policy
+        run: |
+          make incident-replay
+          make incident-proposal
+          make incident-reject-unsafe
 
       - name: Check repository publication
         run: ./scripts/verify-repository.sh

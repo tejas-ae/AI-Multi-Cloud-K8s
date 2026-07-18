@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TF_DIR="$ROOT_DIR/terraform"
 PLAN_DIR="$TF_DIR/.plans"
 PLAN_FILE="$PLAN_DIR/platform.tfplan"
+TRAFFIC_WEIGHTS_FILE="$ROOT_DIR/config/traffic-weights.env"
 ACTION="${1:-}"
 
 usage() {
@@ -19,12 +20,41 @@ require_value() {
   fi
 }
 
+read_traffic_weight() {
+  local name="$1"
+  local value
+
+  value="$(awk -F= -v name="$name" '
+    $1 == name { count += 1; value = $2 }
+    END { if (count == 1) print value; else exit 1 }
+  ' "$TRAFFIC_WEIGHTS_FILE")" || {
+    echo "$name must appear exactly once in $TRAFFIC_WEIGHTS_FILE" >&2
+    exit 1
+  }
+  if [[ ! "$value" =~ ^[1-9][0-9]?$ ]]; then
+    echo "$name must be an integer from 1 to 99" >&2
+    exit 1
+  fi
+  printf '%s\n' "$value"
+}
+
 require_value GCP_PROJECT_ID
 require_value AZURE_SUBSCRIPTION_ID
 require_value TF_STATE_BUCKET
 require_value ADMIN_CIDR
 require_value GKE_KUBERNETES_VERSION
 require_value AKS_KUBERNETES_VERSION
+
+if [[ ! -r "$TRAFFIC_WEIGHTS_FILE" ]]; then
+  echo "traffic weights file is missing: $TRAFFIC_WEIGHTS_FILE" >&2
+  exit 1
+fi
+TRAFFIC_WEIGHT_GKE="$(read_traffic_weight TRAFFIC_WEIGHT_GKE)"
+TRAFFIC_WEIGHT_AKS="$(read_traffic_weight TRAFFIC_WEIGHT_AKS)"
+if ((TRAFFIC_WEIGHT_GKE + TRAFFIC_WEIGHT_AKS != 100)); then
+  echo "traffic weights must total 100" >&2
+  exit 1
+fi
 
 GCP_REGION="${GCP_REGION:-us-central1}"
 GCP_ZONE="${GCP_ZONE:-us-central1-a}"
@@ -50,6 +80,8 @@ common_vars=(
   -var "aks_node_vm_size=$AZURE_NODE_VM_SIZE"
   -var "aks_kubernetes_version=$AKS_KUBERNETES_VERSION"
   -var "admin_cidr=$ADMIN_CIDR"
+  -var "traffic_weight_gke=$TRAFFIC_WEIGHT_GKE"
+  -var "traffic_weight_aks=$TRAFFIC_WEIGHT_AKS"
 )
 
 case "$ACTION" in
