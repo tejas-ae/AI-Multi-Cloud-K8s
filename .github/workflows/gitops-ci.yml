@@ -142,6 +142,14 @@ jobs:
           make incident-replay
           make incident-proposal
           make incident-reject-unsafe
+          claude_response="$(mktemp)"
+          trap 'rm -f "$claude_response"' EXIT
+          python3 ai_copilot/claude.py \
+            examples/incidents/gke-platform-api-latency.json \
+            --offline-response examples/responses/gke-platform-api-latency-claude.json >"$claude_response"
+          python3 ai_copilot/incident.py \
+            examples/incidents/gke-platform-api-latency.json \
+            "$claude_response" --format json
 
       - name: Check repository publication
         run: ./scripts/verify-repository.sh

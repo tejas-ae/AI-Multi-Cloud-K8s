@@ -22,4 +22,6 @@ Traffic Manager uses DNS-based weighted routing, so it is a deliberate demonstra
 
 ## Live integration boundary
 
-The replayed diagnosis models the structured response expected from Claude. A live adapter will receive an Alertmanager webhook, collect read-only metrics, traces, Kubernetes events, and current traffic state, then submit only compact evidence IDs and summaries. The Anthropic credential remains outside Git and Terraform state. The same local validator remains authoritative after any model response.
+The repository now includes a [live Claude analyzer](claude-analyzer.md) that sends a sanitized fixture through the Anthropic Messages API and validates the returned JSON with the same local policy. The Anthropic credential remains outside Git and Terraform state.
+
+A webhook receiver and read-only live evidence collector remain future work. They will receive Alertmanager events, collect compact metrics, traces, Kubernetes events, and current traffic state, then submit only that bounded evidence to the same validator. They must not bypass the existing approval boundary.

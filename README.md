@@ -56,4 +56,5 @@ The cloud foundation, Argo CD installations, independent Istio meshes, verificat
 - [Portfolio demonstration runbook](docs/demo-runbook.md)
 - [Controlled fault design](docs/fault-injection.md)
 - [Incident-response guardrails](docs/incident-response.md)
+- [Live Claude analyzer](docs/claude-analyzer.md)
 - [Sanitized demonstration test summary](evidence/test-summary.md)

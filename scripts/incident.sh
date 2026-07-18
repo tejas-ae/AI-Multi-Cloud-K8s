@@ -9,7 +9,7 @@ DIAGNOSIS_FILE="examples/responses/gke-platform-api-latency-claude.json"
 WEIGHTS_FILE="config/traffic-weights.env"
 
 usage() {
-  echo "usage: $0 replay|propose|reject-unsafe" >&2
+  echo "usage: $0 replay|propose|reject-unsafe|claude" >&2
 }
 
 run_validator() {
@@ -32,6 +32,14 @@ case "${1:-}" in
       exit 1
     fi
     echo "unsafe recommendation rejected as expected"
+    ;;
+  claude)
+    response_file="$(mktemp)"
+    trap 'rm -f "$response_file"' EXIT
+    python3 "$ROOT_DIR/ai_copilot/claude.py" \
+      "$INCIDENT_FILE" --weights "$WEIGHTS_FILE" >"$response_file"
+    python3 "$ROOT_DIR/ai_copilot/incident.py" \
+      "$INCIDENT_FILE" "$response_file" --weights "$WEIGHTS_FILE" --format json
     ;;
   *)
     usage
