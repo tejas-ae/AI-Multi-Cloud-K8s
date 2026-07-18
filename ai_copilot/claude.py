@@ -119,7 +119,18 @@ def call_claude(request_body: bytes, api_key: str) -> dict[str, Any]:
         with urllib.request.urlopen(request, timeout=45) as response:
             payload = json.loads(response.read())
     except urllib.error.HTTPError as error:
-        raise ClaudeError(f"Claude API request failed with HTTP {error.code}") from error
+        error_type = "unknown_error"
+        error_message = "request rejected"
+        try:
+            error_payload = json.loads(error.read())
+            if isinstance(error_payload, dict) and isinstance(error_payload.get("error"), dict):
+                error_type = str(error_payload["error"].get("type", error_type))
+                error_message = str(error_payload["error"].get("message", error_message))
+        except (OSError, json.JSONDecodeError):
+            pass
+        raise ClaudeError(
+            f"Claude API request failed with HTTP {error.code} ({error_type}): {error_message}"
+        ) from error
     except (urllib.error.URLError, TimeoutError) as error:
         raise ClaudeError("Claude API request failed") from error
     content = payload.get("content") if isinstance(payload, dict) else None
