@@ -12,6 +12,6 @@ CONFIRM_FAULT_INJECTION=AI-Multi-Cloud-K8s make fault-clear
 make fault-status
 ```
 
-`fault-load` sends traffic only to the GKE ingress for a bounded duration. `fault-capture` prints whether the short-window demo alert is firing and the current p95 latency value. It does not write evidence, modify Alertmanager, or change traffic weights.
+`fault-load` sends traffic only to the GKE ingress for a bounded duration. `fault-capture` reads the ingress/source-side p95 latency, which includes the injected delay, and prints whether the short-window demo alert is firing. It does not write evidence, modify Alertmanager, or change traffic weights.
 
 I clear the fault before reviewing any traffic proposal. The later traffic change is a separate Git review and Terraform apply, not a consequence of this script.

@@ -69,6 +69,7 @@ jobs:
           grep -q 'PlatformApiAvailabilityBudgetFastBurn' "$observability_policy_manifest"
           grep -q 'PlatformApiAvailabilityBudgetSlowBurn' "$observability_policy_manifest"
           grep -q 'PlatformApiLatencyObjectiveAtRisk' "$observability_policy_manifest"
+          grep -q 'PlatformApiLatencyDemo' "$observability_policy_manifest"
 
       - name: Render Istio chart values
         run: |

@@ -169,7 +169,7 @@ capture() {
     --data-urlencode 'query=ALERTS{alertname="PlatformApiLatencyDemo",alertstate="firing"}' \
     "http://127.0.0.1:${PROMETHEUS_LOCAL_PORT}/api/v1/query")"
   latency_response="$(curl --fail --silent --show-error --get \
-    --data-urlencode 'query=histogram_quantile(0.95,sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_service_name="platform-api"}[1m])))' \
+    --data-urlencode 'query=histogram_quantile(0.95,sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter="source",destination_service_name="platform-api"}[1m])))' \
     "http://127.0.0.1:${PROMETHEUS_LOCAL_PORT}/api/v1/query")"
   jq -n --argjson alerts "$alert_response" --argjson latency "$latency_response" '
     {
