@@ -41,6 +41,12 @@ The live demonstration produced a complete evidence trail from healthy GitOps st
 
 ![Claude structured incident diagnosis and bounded traffic-shift proposal](docs/images/evidence/claude-structured-diagnosis.png)
 
+### Deterministic safety rejection
+
+![Incident policy validator rejecting an unsafe remediation action](docs/images/evidence/incident-unsafe-action-rejected.png)
+
+The model recommendation is constrained by deterministic policy and cannot execute infrastructure changes.
+
 ### Human-approved traffic shift
 
 ![Azure Traffic Manager endpoints online at GKE 30 and AKS 70](docs/images/evidence/traffic-manager-shift-30-70.png)

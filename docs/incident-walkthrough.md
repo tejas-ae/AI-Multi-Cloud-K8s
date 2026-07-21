@@ -6,6 +6,10 @@ This is the incident story I demonstrated on the live GKE and AKS portfolio envi
 
 Both platform deployments were ready behind their Istio ingress gateways. Azure Traffic Manager reported the GKE and AKS endpoints Enabled and Online with equal weights. Argo CD reported the workload and observability policies synchronized and healthy.
 
+![Azure Traffic Manager showing GKE and AKS enabled, online, and weighted 50/50](images/evidence/traffic-manager-baseline-50-50.png)
+
+This capture establishes the healthy active-active baseline: both cloud endpoints were enabled, online, and configured at equal weights before I introduced the controlled failure.
+
 Prometheus, Grafana, Alertmanager, and Tempo were available only through local Kubernetes port-forwards. No monitoring dashboard or administrative service was exposed publicly.
 
 ![GKE cluster running with two nodes](images/evidence/gcp-gke-cluster-overview.png)
@@ -43,6 +47,10 @@ The incident bundle referenced three evidence items:
 The live Claude analyzer returned structured JSON with confidence 0.85. It recommended the only permitted action, `shift_traffic`, from GKE 50 / AKS 50 to GKE 30 / AKS 70. It also required human approval and recorded the exact 50/50 rollback state.
 
 The deterministic validator checked the action type, evidence identifiers, evidence freshness, destination health, confidence threshold, maximum 20-point shift, approval flag, and rollback weights. A separate unsafe fixture was rejected.
+
+![Offline incident-policy replay rejecting an unsafe remediation action](images/evidence/incident-unsafe-action-rejected.png)
+
+This offline replay proves that the deterministic policy rejects an unauthorized action and permits only the bounded, human-approved traffic-shift workflow.
 
 ![Claude structured diagnosis with evidence identifiers, approval requirement, and rollback weights](images/evidence/claude-structured-diagnosis.png)
 
