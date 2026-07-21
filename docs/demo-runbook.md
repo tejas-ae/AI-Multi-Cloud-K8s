@@ -61,9 +61,9 @@ I commit a second change restoring `config/traffic-weights.env` to 50/50. I repe
 
 I publish only:
 
-- healthy, firing, and recovered monitoring views;
+- the equal-weight healthy Traffic Manager baseline plus healthy, firing, and recovered monitoring views;
 - the structured Claude result without prompts, keys, or account metadata;
-- policy acceptance and unsafe-fixture rejection;
+- deterministic policy acceptance and unsafe-fixture rejection;
 - the reviewed traffic-weight commits;
 - sanitized plan summaries showing only action counts and intended resources;
 - recovery and rollback endpoint tables; and
