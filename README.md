@@ -204,6 +204,151 @@ This plans a full destroy, shows it, and applies it — removing all 24 managed 
 - [Observability implementation](docs/observability.md)
 - [GitOps design](docs/gitops.md)
 
+## Reproducible: the offline latency policy path
+
+This is the part anyone can reproduce from the repo with no cloud credentials and no API key. The validator accepts the recorded latency fixture at **0.91** confidence and emits the bounded 30/70 shift; the adversarial fixture is rejected.
+
+`make incident-replay`:
+
+```json
+{
+  "action": "shift_traffic",
+  "approval_required": true,
+  "approved": true,
+  "confidence": 0.91,
+  "current_weights": { "aks": 50, "gke": 50 },
+  "evidence_ids": [
+    "prometheus-p95",
+    "tempo-request-trace",
+    "aks-rollout-health"
+  ],
+  "incident_id": "gke-platform-api-latency-demo",
+  "proposed_weights": { "aks": 70, "gke": 30 },
+  "rollback_weights": { "aks": 50, "gke": 50 }
+}
+```
+
+`make incident-proposal`:
+
+```diff
+--- config/traffic-weights.env
++++ config/traffic-weights.env
+-TRAFFIC_WEIGHT_GKE=50
++TRAFFIC_WEIGHT_GKE=30
+-TRAFFIC_WEIGHT_AKS=50
++TRAFFIC_WEIGHT_AKS=70
+```
+
+`make incident-reject-unsafe`:
+
+```text
+policy rejected: only shift_traffic is allowed
+unsafe recommendation rejected as expected
+```
+
+The recommendation correlates three evidence types (metric, trace, Kubernetes), keeps human approval mandatory, and records the current weights as rollback weights — the same guarantees described in the main README, applied to the latency fixture.
+
+## Live run evidence
+
+### Preflight and apply
+
+`make preflight` cleared every gate before any cloud resource was created:
+
+```text
+Result
+passes=74 warnings=0 failures=0
+READY: Phase 0 passed. Review the first Terraform plan before applying it.
+```
+
+`make tf-apply` created the full foundation — exactly 24 billable resources:
+
+```text
+Apply complete! Resources: 24 added, 0 changed, 0 destroyed.
+
+Outputs:
+aks_cluster_name        = "ai-multicloud-k8s-aks"
+aks_ingress_public_fqdn = "ai-multicloud-k8s-aks-garwwo.centralus.cloudapp.azure.com"
+aks_ingress_public_ip   = "74.249.211.146"
+aks_resource_group_name = "ai-multicloud-k8s-prod"
+gke_cluster_name        = "ai-multicloud-k8s-gke"
+gke_ingress_public_ip   = "34.173.68.245"
+gke_location            = "us-central1-a"
+traffic_manager_fqdn    = "ai-multicloud-k8s-garwwo.trafficmanager.net"
+```
+
+### Cluster hardening (as deployed)
+
+GKE — private nodes, single authorized network, pinned version, bounded autoscaling:
+
+```json
+{ "status": "RUNNING", "version": "1.35.5-gke.1241004", "privateNodes": true, "authorizedNetworkCount": 1 }
+{ "machineType": "e2-standard-4", "autoscaling": { "enabled": true, "minNodeCount": 2, "maxNodeCount": 2 } }
+```
+
+AKS — local accounts disabled, Entra RBAC, single authorized network:
+
+```json
+{
+  "state": "Succeeded",
+  "version": "1.35.5",
+  "localAccountsDisabled": true,
+  "azureRbacEnabled": true,
+  "authorizedNetworkCount": 1,
+  "nodePool": { "count": 2, "minCount": 2, "maxCount": 2, "vmSize": "Standard_D2_v4", "powerState": "Running" }
+}
+```
+
+Note: this run used `Standard_D2_v4` AKS nodes via a local override; the repo default is `Standard_D4s_v3`.
+
+### Traffic Manager
+
+```text
+Name               Routing   Status   Dns                                          Ttl  ProbePath
+ai-multicloud-k8s  Weighted  Enabled  ai-multicloud-k8s-garwwo.trafficmanager.net  30   /healthz
+
+Name  Status   Monitor   Weight
+gke   Enabled  Degraded  50
+aks   Enabled  Degraded  50
+```
+
+### Delivery, mesh, and observability
+
+- **Argo CD** per cluster (`argo-cd-9.7.1`), `platform-bootstrap` Healthy/Synced, `Sync Policy: Manual`, namespace-scoped projects (`mesh-security`, `observability-policy`, `platform-workloads`).
+- **Istio** `1.30.3` per cluster; `PeerAuthentication default STRICT`; two `istio-ingress` replicas.
+- **Observability** pinned via Git: `kube-prometheus-stack-87.17.0`, `opentelemetry-collector-0.165.0`, `tempo-2.2.3`, plus `PodMonitor platform-api-istio`, `PrometheusRule platform-api-slos`, and `Telemetry platform-tracing`, all reconciled and Healthy.
+- **Workload** `platform-api` at 2/2 with a pod disruption budget (`minAvailable: 1`) and `maxSurge: 0`.
+
+### Controlled latency fault
+
+The fault is confirmation-gated (`CONFIRM_FAULT_INJECTION=AI-Multi-Cloud-K8s`) and targets only the application route:
+
+```text
+$ make fault-inject
+GKE application-route latency fault is active. Run make fault-load, then make fault-capture.
+
+$ make fault-load
+GKE fault traffic generation complete.
+
+$ make fault-capture
+{
+  "alert_firing": false,
+  "p95_milliseconds": "0.9800496688741721"
+}
+```
+
+Clearing it returns the route to normal:
+
+```text
+$ make fault-clear
+GKE latency fault is already clear.
+
+$ make fault-status
+{ "active": false, "delay": null }
+```
+
+In this captured snapshot the p95 signal was ~1 ms and the demonstration alert was not firing — so the latency variant did not produce a firing live incident the way the availability variant did. That is why I kept the availability/503 run as the canonical demo and treat this document as an honest record of the latency iteration rather than a second "demonstrated result."
+
+
 ## Scope
 
 This is deliberately bounded. The cloud foundation, delivery layer, workload, observability stack, controlled incident, live Claude analysis, human-approved traffic shift, recovery verification, Git rollback, and visual evidence set have all been exercised and published. The remaining portfolio work is publishing actual cost measurements, followed by mandatory destruction and verification of every billable resource.
